@@ -9,9 +9,16 @@
   "author": "Sahil",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.6.0",
     "csv-write-stream": "^2.0.0",
+    "dateformat": "^3.0.2",
     "elasticsearch": "^14.0.0",
-    "request": "^2.83.0",
-    "dateformat": "^3.0.2"
+    "eslint": "^4.14.0",
+    "mysql": "^2.15.0",
+    "request": "^2.83.0"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.8.0"
   }
 }
