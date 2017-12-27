@@ -1,1 +1,7 @@
 extends: airbnb-base
+rules:
+  no-console:
+    - 2
+    - allow:
+        - warn
+        - error

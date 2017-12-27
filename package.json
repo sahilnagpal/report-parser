@@ -9,6 +9,7 @@
   "author": "Sahil",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.6.0",
     "csv-write-stream": "^2.0.0",
     "dateformat": "^3.0.2",
     "elasticsearch": "^14.0.0",
