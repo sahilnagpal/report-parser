@@ -1,68 +1,85 @@
-var elasticsearch = require('elasticsearch');
-var csvWriter = require('csv-write-stream')
-var fs = require('fs');
+const elasticsearch = require('elasticsearch');
+const csvWriter = require('csv-write-stream');
+const fs = require('fs');
+const dateFormat = require('dateformat');
 
-var options = {
+
+const DATE_FORMAT = 'dd/mm/yyyy - hh:MM TT';
+const options = {
   separator: ',',
   newline: '\n',
-  headers: ["Date created", "Client name", "Pan", "Status",
-   "Offered amount", "Last Status date", "Last status person", "Sales person"],
-  sendHeaders: true
+  headers: [
+    'Client Id',
+    'Client Name',
+    'Client Pan',
+    'Client Status',
+    'Loan Application Id',
+    'Loan Application Creation Date',
+    'Loan Application Status',
+    'Loan Request Id',
+    'Loan Request Status',
+    'Loan Request Creation Date',
+    'Loan Request NBFC',
+    'Loan Request Offered Amount',
+    'Loan Request Interest rate',
+    'Loan Request Repayment Cycle',
+    'Loan Request Processing Charge'],
+  sendHeaders: true,
 };
 
-var writer = csvWriter(options);
-writer.pipe(fs.createWriteStream('loan_application_report.csv'))
 
-var host = 'http://localhost:9200/';
+const writer = csvWriter(options);
+writer.pipe(fs.createWriteStream('loan_application_report.csv'));
 
-var client = new elasticsearch.Client({
-	host: host,
+const host = 'https://35.194.249.217:9200/';
+
+const client = new elasticsearch.Client({
+  host,
 });
 
 client.search({
-	index: 'oxyzo_loanapplication',
-	size: 2000,
-	body: {
-		query: {
-			match: {
-				deleted: false
-			}
-		}
-	}
-}).then(function(resp) {
-	var hits = resp.hits.hits;
-	hits.map(function(hit) {
-		//console.log(hit._source);
-		var clientDetails = [];
-		var source = hit._source;
-		clientDetails.push(new Date(source.dateCreated));
-		clientDetails.push(source.client.name);
-		clientDetails.push(source.client.pan);
-		clientDetails.push(source.loanApplicationStatus);
-		if (source.loanRequestIndices !== null) {
-			var amounts = source.loanRequestIndices.map(function(loanRequest) {
-				return loanRequest.nbfcName + " : " + (loanRequest.offerLoanAmount != null ? loanRequest.offerLoanAmount : loanRequest.loanAmount);
-			});
-			clientDetails.push(amounts.join(','));
-		} else {
-			clientDetails.push("");
-		}
-		if (source.statusTransitionComments != null && source.statusTransitionComments.length > 0) {
-			var comment = source.statusTransitionComments[source.statusTransitionComments.length - 1];
-			clientDetails.push(new Date(comment.dateCreated));
-			clientDetails.push(comment.lastModifiedByName);
-		} else {
-			clientDetails.push("");
-			clientDetails.push("");
-		}
-		if (source.salesPersonAccount != null) {
-			clientDetails.push(source.salesPersonAccount.name);	
-		} else {
-			clientDetails.push("");	
-		}
-		writer.write(clientDetails);
-	});
-	writer.end()
-}, function(error) {
-	console.error('Error while querying ES', error);
+  index: 'oxyzo_loanapplication',
+  size: 3000,
+  body: {
+    query: {
+      match: {
+        deleted: false,
+      },
+    },
+  },
+}).then((resp) => {
+  const hits = resp.hits.hits;
+  hits.map((hit) => {
+    // console.log(hit._source);
+    const clientDetails = [];
+    const source = hit._source;
+    clientDetails.push(source.client.clientId);
+    clientDetails.push(source.client.name);
+    clientDetails.push(source.client.pan);
+    clientDetails.push(source.client.clientStatus);
+    clientDetails.push(source.applicationId);
+    clientDetails.push(dateFormat(new Date(source.dateCreated), DATE_FORMAT));
+    clientDetails.push(source.loanApplicationStatus);
+
+    if (source.loanRequestIndices !== null) {
+      source.loanRequestIndices.forEach((loanRequest) => {
+        let row = [];
+        row = row.concat(clientDetails);
+        row.push(loanRequest.loanRequestId);
+        row.push(loanRequest.status);
+        row.push(dateFormat(new Date(loanRequest.dateCreated), DATE_FORMAT));
+        row.push(loanRequest.nbfcName);
+        row.push(loanRequest.offerLoanAmount);
+        row.push(loanRequest.interestRate);
+        row.push(loanRequest.repaymentCycle);
+        row.push(loanRequest.processingCharge);
+        writer.write(row);
+      });
+    } else {
+      writer.write(clientDetails);
+    }
+  });
+  writer.end();
+}, (error) => {
+  console.error('Error while querying ES', error);
 });
