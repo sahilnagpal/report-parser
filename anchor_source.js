@@ -48,7 +48,7 @@ const mapAnchors = (data, callback) => {
           clientsCallback(null, []);
         } else {
           const query = names.map(name => `"${name}"`).join();
-          mysqlClient.query(`SELECT * FROM client WHERE name IN (${query})`, (sqlerror, sqlResults) => {
+          mysqlClient.query(`SELECT * FROM client WHERE name IN (${query}) AND status = "VERIFIED"`, (sqlerror, sqlResults) => {
             if (sqlerror) {
               console.error('clients sqlerror "', clientName, '": ', sqlerror);
               clientsCallback(sqlerror, null);
