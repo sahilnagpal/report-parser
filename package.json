@@ -10,13 +10,14 @@
   "license": "ISC",
   "dependencies": {
     "async": "^2.6.0",
+    "csv-reader": "^1.0.3",
     "csv-write-stream": "^2.0.0",
     "dateformat": "^3.0.2",
     "elasticsearch": "^14.0.0",
     "eslint": "^4.14.0",
+    "mongodb": "^3.0.6",
     "mysql": "^2.15.0",
-    "request": "^2.83.0",
-    "mongodb": "^3.0.6"
+    "request": "^2.83.0"
   },
   "devDependencies": {
     "eslint-config-airbnb-base": "^12.1.0",
